@@ -7,6 +7,10 @@ use std::path::Path;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+    Ok(())
+}
+
+async fn upload_file() {
     let bucket_region = "us-east-2";
     let bucket_name = "hello-rust-bucket-1";
 
@@ -37,8 +41,6 @@ async fn main() -> Result<(), Error> {
             eprintln!("Error uploading {file_name} {err}");
         }
     }
-
-    Ok(())
 }
 
 async fn print_buckets() -> Result<(), Error> {
