@@ -3,6 +3,11 @@ use aws_sdk_s3::{
     Client, Error, Region,
 };
 
+#[tokio::main]
+async fn main() -> Result<(), Error> {
+    Ok(())
+}
+
 async fn print_buckets() -> Result<(), Error> {
     // get default credentials from ~/.aws/credentials
     let config = aws_config::load_from_env().await;
@@ -24,8 +29,7 @@ async fn print_buckets() -> Result<(), Error> {
     Ok(())
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Error> {
+async fn create_bucket() -> Result<(), Error> {
     let bucket_region = "us-east-2";
     let bucket_name = "hello-rust-bucket-1";
 
@@ -42,13 +46,22 @@ async fn main() -> Result<(), Error> {
         .location_constraint(constraint)
         .build();
 
-    s3.create_bucket()
+    let result = s3
+        .create_bucket()
         .create_bucket_configuration(bucket_configuration)
         .bucket(bucket_name)
         .send()
-        .await?;
+        .await;
 
-    println!("Successfull created {bucket_name}");
+    match result {
+        Ok(_) => {
+            println!("Successfull created {bucket_name}");
+        }
+
+        Err(err) => {
+            eprintln!("Failed to create bucket: {err}");
+        }
+    }
 
     Ok(())
 }
