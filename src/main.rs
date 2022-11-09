@@ -3,6 +3,7 @@ use aws_sdk_s3::{
     types::ByteStream,
     Client, Error, Region,
 };
+use std::path::Path;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -13,13 +14,15 @@ async fn main() -> Result<(), Error> {
     let config = aws_config::from_env().region(region_provider).load().await;
     let s3 = Client::new(&config);
 
-    let file_key = "plaintext.txt";
-    let file_body = ByteStream::from_static("Hello".as_bytes());
+    let file_name = "testfile.txt";
+    let file_path = Path::new(file_name);
+    // unwrap will panic if there's an error reading the file
+    let file_body = ByteStream::from_path(file_path).await.unwrap();
 
     let result = s3
         .put_object()
         .bucket(bucket_name)
-        .key(file_key)
+        .key(file_name)
         .body(file_body)
         .content_type("text/plain")
         .send()
@@ -27,11 +30,11 @@ async fn main() -> Result<(), Error> {
 
     match result {
         Ok(_) => {
-            println!("Succesfully uploaded {file_key} to {bucket_name}");
+            println!("Succesfully uploaded {file_name} to {bucket_name}");
         }
 
         Err(err) => {
-            eprintln!("Error uploading {file_key} {err}");
+            eprintln!("Error uploading {file_name} {err}");
         }
     }
 
