@@ -7,6 +7,35 @@ use std::path::Path;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+    let bucket_region = "us-east-2";
+    let bucket_name = "hello-rust-bucket-1";
+
+    let region_provider = Region::new(bucket_region);
+    let config = aws_config::from_env().region(region_provider).load().await;
+    let s3 = Client::new(&config);
+
+    // listt the first 10 keys in the bucket
+    let result = s3
+        .list_objects_v2()
+        .bucket(bucket_name)
+        .max_keys(10)
+        .send()
+        .await?;
+
+    for object in result.contents().unwrap() {
+        let key = object.key().unwrap();
+
+        let object = s3.get_object().bucket(bucket_name).key(key).send().await?;
+
+        // convert the body into a string
+        let data = object.body.collect().await.unwrap().into_bytes();
+
+        // Note that this code assumes that the files are utf8 encoded plain text format.
+        let content = std::str::from_utf8(&data).unwrap();
+
+        println!("key: #{key}, content: {content}");
+    }
+
     Ok(())
 }
 
